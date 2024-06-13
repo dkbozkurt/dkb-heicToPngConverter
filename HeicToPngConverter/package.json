@@ -1,0 +1,14 @@
+{
+  "name": "heic-to-png-converter",
+  "version": "1.0.0",
+  "description": "A script to convert .heic files to .png",
+  "main": "convertHeicToPng.js",
+  "scripts": {
+    "dev": "node convertHeicToPng.js"
+  },
+  "author": "Dogukan Kaan Bozkurt",
+  "license": "MIT",
+  "dependencies": {
+    "sharp": "^0.33.4"
+  }
+}
