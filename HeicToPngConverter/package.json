@@ -1,6 +1,6 @@
 {
-  "name": "heic-to-png-converter",
-  "version": "1.0.0",
+  "name": "dkb-heic-to-png-converter",
+  "version": "0.1.0",
   "description": "A script to convert .heic files to .png",
   "main": "convertHeicToPng.js",
   "scripts": {
