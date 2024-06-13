@@ -3,15 +3,6 @@ const path = require('path');
 const sharp = require('sharp');
 const heicConvert = require('heic-convert');
 
-// Define the source and destination folders
-const sourceFolder = path.join(__dirname, 'source');
-const destFolder = path.join(__dirname, 'dist');
-
-// Ensure the destination folder exists
-if (!fs.existsSync(destFolder)) {
-    fs.mkdirSync(destFolder, { recursive: true });
-}
-
 // Function to convert HEIC to PNG
 async function convertHeicToPng(sourcePath, destPath) {
     try {
@@ -31,19 +22,47 @@ async function convertHeicToPng(sourcePath, destPath) {
     }
 }
 
-// Read the source folder and process each file
-fs.readdir(sourceFolder, (err, files) => {
-    if (err) {
-        console.error('Error reading source folder:', err);
-        return;
-    }
+// Dynamically import inquirer and prompt the user for source and destination paths
+(async () => {
+    const inquirer = await import('inquirer');
 
-    files.forEach(file => {
-        const ext = path.extname(file).toLowerCase();
-        if (ext === '.heic') {
-            const sourcePath = path.join(sourceFolder, file);
-            const destPath = path.join(destFolder, path.basename(file, ext) + '.png');
-            convertHeicToPng(sourcePath, destPath);
+    inquirer.default.prompt([
+        {
+            type: 'input',
+            name: 'sourceFolder',
+            message: 'Enter the path to the source folder containing HEIC files:',
+            default: path.join(__dirname, 'source')
+        },
+        {
+            type: 'input',
+            name: 'destFolder',
+            message: 'Enter the path to the destination folder for PNG files:',
+            default: path.join(__dirname, 'dist')
         }
+    ]).then(answers => {
+        const sourceFolder = answers.sourceFolder;
+        const destFolder = answers.destFolder;
+
+        // Ensure the destination folder exists
+        if (!fs.existsSync(destFolder)) {
+            fs.mkdirSync(destFolder, { recursive: true });
+        }
+
+        // Read the source folder and process each file
+        fs.readdir(sourceFolder, (err, files) => {
+            if (err) {
+                console.error('Error reading source folder:', err);
+                return;
+            }
+
+            files.forEach(file => {
+                const ext = path.extname(file).toLowerCase();
+                if (ext === '.heic') {
+                    const sourcePath = path.join(sourceFolder, file);
+                    const destPath = path.join(destFolder, path.basename(file, ext) + '.png');
+                    convertHeicToPng(sourcePath, destPath);
+                }
+            });
+        });
     });
-});
+})();
