@@ -11,6 +11,7 @@ The HEIC to PNG Converter is a Node.js application designed to batch convert HEI
 
 * `sharp` : A high-performance image processing library.
 * `heic-convert` : A library to decode HEIC files using libheif.
+* `cli-progress` : A library to display progress bars in the terminal.
 
 ### Installation
 1. Clone the Repository
@@ -44,7 +45,9 @@ heic-to-png-converter/
 ```bash
 npm run dev
 ```
-This command will convert all .heic files in the source folder to .png files in the dist folder, keeping the original filenames.
+This command will convert all .heic files in the source folder to .png files in the dist folder, keeping the original filenames. It also displays a progress bar to show the conversion progress.
+
+
 
 ## Example
 
@@ -65,6 +68,8 @@ Contributors names and contact info
 
 * 0.1
     * Initial Release
+* 0.2
+    * Added progress bar functionality and improved error handling.
 
 ## License
 
