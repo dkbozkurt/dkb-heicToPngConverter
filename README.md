@@ -1,6 +1,13 @@
 # dkb-heicToPngConverter
 <!-- Conversion script which converts '.heic' files, to '.png' files without quality compression -->
 
+<p align="center">
+<img src="./Img/heic.png" alt="heic" width="120" height="120"/>
+<img src="./Img/right-arrow.png" alt="arrow" width="120" height="120"/>
+<img src="./Img/png.png" alt="png" width="120" height="120"/>
+
+</p>
+
 ## Description
 
 The HEIC to PNG Converter is a Node.js application designed to batch convert HEIC (High-Efficiency Image Coding) files to PNG (Portable Network Graphics) files. This tool is particularly useful for users who need to handle images from Apple devices, as HEIC is the default format for photos on iOS.
