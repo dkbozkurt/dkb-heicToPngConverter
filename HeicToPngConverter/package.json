@@ -9,6 +9,7 @@
   "author": "Dogukan Kaan Bozkurt",
   "license": "MIT",
   "dependencies": {
+    "cli-progress": "^3.12.0",
     "heic-convert": "^2.1.0",
     "sharp": "^0.33.4"
   }

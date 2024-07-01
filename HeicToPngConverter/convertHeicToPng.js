@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 const heicConvert = require('heic-convert');
+const cliProgress = require('cli-progress');
 
-// Define the source and destination folders
 const sourceFolder = path.join(__dirname, 'source');
 const destFolder = path.join(__dirname, 'dist');
 
@@ -32,18 +32,45 @@ async function convertHeicToPng(sourcePath, destPath) {
 }
 
 // Read the source folder and process each file
-fs.readdir(sourceFolder, (err, files) => {
+fs.readdir(sourceFolder, async (err, files) => {
     if (err) {
         console.error('Error reading source folder:', err);
         return;
     }
 
-    files.forEach(file => {
-        const ext = path.extname(file).toLowerCase();
-        if (ext === '.heic') {
-            const sourcePath = path.join(sourceFolder, file);
-            const destPath = path.join(destFolder, path.basename(file, ext) + '.png');
-            convertHeicToPng(sourcePath, destPath);
+    const heicFiles = files.filter(file => path.extname(file).toLowerCase() === '.heic');
+
+    if (heicFiles.length === 0) {
+        console.log('No HEIC files found in the source folder.');
+        return;
+    }
+
+    const progressBar = new cliProgress.SingleBar({
+        clearOnComplete: false,
+        hideCursor: true
+    }, cliProgress.Presets.shades_classic);
+    progressBar.start(heicFiles.length, 0);
+
+    let convertedFiles = 0;
+
+    // Convert files sequentially to properly update the progress bar
+    for (const file of heicFiles) {
+        const sourcePath = path.join(sourceFolder, file);
+        const destPath = path.join(destFolder, path.basename(file, path.extname(file)) + '.png');
+        
+        try {
+            await convertHeicToPng(sourcePath, destPath);
+        } catch (err) {
+            console.error(`Error converting file ${sourcePath}:`, err);
         }
-    });
+
+        convertedFiles++;
+        progressBar.update(convertedFiles);
+    }
+
+    progressBar.stop();
+
+    // Additional logs to ensure they remain visible
+    console.log('All files converted successfully.');
+    console.log(`Total files processed: ${convertedFiles}`);
 });
