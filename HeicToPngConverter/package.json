@@ -10,7 +10,6 @@
   "license": "MIT",
   "dependencies": {
     "heic-convert": "^2.1.0",
-    "inquirer": "^9.2.23",
     "sharp": "^0.33.4"
   }
 }
