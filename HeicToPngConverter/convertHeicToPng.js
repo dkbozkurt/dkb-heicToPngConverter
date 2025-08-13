@@ -4,15 +4,16 @@ const sharp = require('sharp');
 const heicConvert = require('heic-convert');
 const cliProgress = require('cli-progress');
 
-// Get format from command line args
+// Get format from npm script name
 const exportFormat = (process.argv[2] || 'png').toLowerCase();
 if (!['png', 'jpg', 'jpeg'].includes(exportFormat)) {
     console.error('Invalid format! Please choose either "png" or "jpg".');
     process.exit(1);
 }
 
-const sourceFolder = path.join(__dirname, 'source');
-const destFolder = path.join(__dirname, 'dist');
+// Get source and destination folder from arguments
+const sourceFolder = process.argv[3] ? path.resolve(process.argv[3]) : path.join(__dirname, 'source');
+const destFolder = process.argv[4] ? path.resolve(process.argv[4]) : path.join(__dirname, 'dist');
 
 // Ensure the destination folder exists
 if (!fs.existsSync(destFolder)) {
@@ -39,7 +40,7 @@ async function convertHeic(sourcePath, destPath) {
     }
 }
 
-// Function to recursively get all .heic files
+// Recursively get all .heic files
 function getHeicFiles(dir) {
     let results = [];
     const list = fs.readdirSync(dir);
@@ -55,7 +56,7 @@ function getHeicFiles(dir) {
     return results;
 }
 
-// Function to generate unique file path if it already exists
+// Generate unique file path if it already exists
 function getUniqueFilePath(filePath) {
     let uniquePath = filePath;
     let counter = 1;
@@ -90,7 +91,7 @@ async function main() {
     let convertedFiles = 0;
 
     for (const file of heicFiles) {
-        // Preserve folder structure
+        // Preserve folder structure relative to source
         const relativePath = path.relative(sourceFolder, file);
         let destPath = path.join(
             destFolder,
