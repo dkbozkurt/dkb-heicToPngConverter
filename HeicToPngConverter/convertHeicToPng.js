@@ -39,14 +39,26 @@ async function convertHeic(sourcePath, destPath) {
     }
 }
 
-// Read the source folder and process each file
-fs.readdir(sourceFolder, async (err, files) => {
-    if (err) {
-        console.error('Error reading source folder:', err);
-        return;
+// Function to recursively get all .heic files
+function getHeicFiles(dir) {
+    let results = [];
+    const list = fs.readdirSync(dir);
+    for (const file of list) {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+        if (stat && stat.isDirectory()) {
+            // Recurse into subfolder
+            results = results.concat(getHeicFiles(filePath));
+        } else if (path.extname(file).toLowerCase() === '.heic') {
+            results.push(filePath);
+        }
     }
+    return results;
+}
 
-    const heicFiles = files.filter(file => path.extname(file).toLowerCase() === '.heic');
+// Main function
+async function main() {
+    const heicFiles = getHeicFiles(sourceFolder);
 
     if (heicFiles.length === 0) {
         console.log('No HEIC files found in the source folder.');
@@ -62,14 +74,21 @@ fs.readdir(sourceFolder, async (err, files) => {
     let convertedFiles = 0;
 
     for (const file of heicFiles) {
-        const sourcePath = path.join(sourceFolder, file);
-        const destPath = path.join(destFolder, path.basename(file, path.extname(file)) + `.${exportFormat}`);
+        // Keep the folder structure in the destination folder
+        const relativePath = path.relative(sourceFolder, file);
+        const destPath = path.join(
+            destFolder,
+            path.dirname(relativePath),
+            path.basename(file, path.extname(file)) + `.${exportFormat}`
+        );
 
-        try {
-            await convertHeic(sourcePath, destPath);
-        } catch (err) {
-            console.error(`Error converting file ${sourcePath}:`, err);
+        // Ensure subfolders exist in destination
+        const destDir = path.dirname(destPath);
+        if (!fs.existsSync(destDir)) {
+            fs.mkdirSync(destDir, { recursive: true });
         }
+
+        await convertHeic(file, destPath);
 
         convertedFiles++;
         progressBar.update(convertedFiles);
@@ -79,4 +98,6 @@ fs.readdir(sourceFolder, async (err, files) => {
 
     console.log('All files converted successfully.');
     console.log(`Total files processed: ${convertedFiles}`);
-});
+}
+
+main();
