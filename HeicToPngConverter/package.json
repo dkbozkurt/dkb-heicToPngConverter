@@ -6,7 +6,7 @@
   "scripts": {
     "convert:png": "node convertHeicToPng.js png",
     "convert:jpg": "node convertHeicToPng.js jpg",
-    "dev": "node convertHeicToPng.js png"
+    "dev": "node convertHeicToPng.js jpg"
   },
   "author": "Dogukan Kaan Bozkurt",
   "license": "MIT",

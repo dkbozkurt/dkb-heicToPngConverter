@@ -5,12 +5,13 @@
 <img src="./Img/heic.png" alt="heic" width="120" height="120"/>
 <img src="./Img/right-arrow.png" alt="arrow" width="120" height="120"/>
 <img src="./Img/png.png" alt="png" width="120" height="120"/>
+<img src="./Img/jpg.png" alt="jpg" width="120" height="120"/>
 
 </p>
 
 ## Description
 
-The HEIC to PNG Converter is a Node.js application designed to batch convert HEIC (High-Efficiency Image Coding) files to PNG (Portable Network Graphics) files. This tool is particularly useful for users who need to handle images from Apple devices, as HEIC is the default format for photos on iOS.
+The HEIC to Image Converter is a Node.js application designed to batch convert HEIC (High-Efficiency Image Coding) files to PNG or JPG files. This tool is particularly useful for users who need to handle images from Apple devices, as HEIC is the default format for photos on iOS. It supports nested folders, ignores non-HEIC files, and ensures no overwritten files by automatically adding a suffix to duplicate filenames.
 
 ## Getting Started
 
@@ -40,30 +41,35 @@ Ensure you have the following structure:
 ```bash
 heic-to-png-converter/
 ├── source/         # Folder containing source .heic files
-├── dist/           # Folder where converted .png files will be saved
+├── dist/           # Folder where converted files will be saved
 ├── convertHeicToPng.js  # The main conversion script
 └── package.json    # Project configuration and dependencies
 ```
 
 ### Usage
 
-1. Place your .heic files in the source folder.
-2. Run the Conversion Script
+You can now choose the export type and optionally pass custom source and destination paths.
 ```bash
-npm run dev
+npm run convert:png [SOURCE_PATH] [DIST_PATH]
+npm run convert:jpg [SOURCE_PATH] [DIST_PATH]
 ```
-This command will convert all .heic files in the source folder to .png files in the dist folder, keeping the original filenames. It also displays a progress bar to show the conversion progress.
+<b>Rules for paths:</b>
 
+1. If no source is provided → source = ./source, dist = ./dist.
 
+2. If only source is provided → dist defaults to the same folder as the source.
+
+3. If both source and dest are provided → use the provided paths.
 
 ## Example
 
-If you have a file <b>image1.heic</b> in the source folder, running the script will create a <b>image1.png</b> file in the dist folder.
+If you have a file <b>image1.heic</b> in the source folder, running the script will create a <b>image1.png</b> (or .jpg) file in the dist folder. If a file with the same name already exists, the script will create <b>image1_1.png</b> (or .jpg).
 
 ## Notes
-* Ensure the source and dist folders are in the same directory as the convertHeicToPng.js script.
+* Ensure the source and dist folders are in the same directory as the convertHeicToPng.js script, unless specifying custom paths.
 * The conversion process may take some time depending on the number and size of .heic files.
 * Test '.heic' files can be found under <b>/heicToPngConverter/test/</b>.
+* Supported formats are PNG and JPG only.
 
 ## Authors
 
@@ -77,6 +83,8 @@ Contributors names and contact info
     * Initial Release
 * 0.2
     * Added progress bar functionality and improved error handling.
+* 0.3
+    * Added JPG export option, recursive folder scanning, file overwrite protection, and flexible source/dest paths.
 
 ## License
 
