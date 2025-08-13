@@ -47,13 +47,29 @@ function getHeicFiles(dir) {
         const filePath = path.join(dir, file);
         const stat = fs.statSync(filePath);
         if (stat && stat.isDirectory()) {
-            // Recurse into subfolder
             results = results.concat(getHeicFiles(filePath));
         } else if (path.extname(file).toLowerCase() === '.heic') {
             results.push(filePath);
         }
     }
     return results;
+}
+
+// Function to generate unique file path if it already exists
+function getUniqueFilePath(filePath) {
+    let uniquePath = filePath;
+    let counter = 1;
+
+    const ext = path.extname(filePath);
+    const baseName = path.basename(filePath, ext);
+    const dir = path.dirname(filePath);
+
+    while (fs.existsSync(uniquePath)) {
+        uniquePath = path.join(dir, `${baseName}_${counter}${ext}`);
+        counter++;
+    }
+
+    return uniquePath;
 }
 
 // Main function
@@ -74,19 +90,22 @@ async function main() {
     let convertedFiles = 0;
 
     for (const file of heicFiles) {
-        // Keep the folder structure in the destination folder
+        // Preserve folder structure
         const relativePath = path.relative(sourceFolder, file);
-        const destPath = path.join(
+        let destPath = path.join(
             destFolder,
             path.dirname(relativePath),
             path.basename(file, path.extname(file)) + `.${exportFormat}`
         );
 
-        // Ensure subfolders exist in destination
+        // Ensure subfolders exist
         const destDir = path.dirname(destPath);
         if (!fs.existsSync(destDir)) {
             fs.mkdirSync(destDir, { recursive: true });
         }
+
+        // Make unique if file already exists
+        destPath = getUniqueFilePath(destPath);
 
         await convertHeic(file, destPath);
 
