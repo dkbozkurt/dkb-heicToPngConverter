@@ -4,6 +4,13 @@ const sharp = require('sharp');
 const heicConvert = require('heic-convert');
 const cliProgress = require('cli-progress');
 
+// Get format from command line args
+const exportFormat = (process.argv[2] || 'png').toLowerCase();
+if (!['png', 'jpg', 'jpeg'].includes(exportFormat)) {
+    console.error('Invalid format! Please choose either "png" or "jpg".');
+    process.exit(1);
+}
+
 const sourceFolder = path.join(__dirname, 'source');
 const destFolder = path.join(__dirname, 'dist');
 
@@ -12,19 +19,20 @@ if (!fs.existsSync(destFolder)) {
     fs.mkdirSync(destFolder, { recursive: true });
 }
 
-// Function to convert HEIC to PNG
-async function convertHeicToPng(sourcePath, destPath) {
+// Function to convert HEIC to PNG or JPG
+async function convertHeic(sourcePath, destPath) {
     try {
         const inputBuffer = fs.readFileSync(sourcePath);
         const outputBuffer = await heicConvert({
-            buffer: inputBuffer, // the HEIC file buffer
-            format: 'PNG',       // output format
-            quality: 1           // the jpeg compression quality, between 0 and 1
+            buffer: inputBuffer,
+            format: exportFormat.toUpperCase() === 'JPG' ? 'JPEG' : exportFormat.toUpperCase(),
+            quality: 1
         });
 
         await sharp(outputBuffer)
+            .toFormat(exportFormat === 'jpg' ? 'jpeg' : exportFormat)
             .toFile(destPath);
-        
+
         console.log(`Converted: ${sourcePath} -> ${destPath}`);
     } catch (error) {
         console.error(`Error converting file ${sourcePath}:`, error);
@@ -53,13 +61,12 @@ fs.readdir(sourceFolder, async (err, files) => {
 
     let convertedFiles = 0;
 
-    // Convert files sequentially to properly update the progress bar
     for (const file of heicFiles) {
         const sourcePath = path.join(sourceFolder, file);
-        const destPath = path.join(destFolder, path.basename(file, path.extname(file)) + '.png');
-        
+        const destPath = path.join(destFolder, path.basename(file, path.extname(file)) + `.${exportFormat}`);
+
         try {
-            await convertHeicToPng(sourcePath, destPath);
+            await convertHeic(sourcePath, destPath);
         } catch (err) {
             console.error(`Error converting file ${sourcePath}:`, err);
         }
@@ -70,7 +77,6 @@ fs.readdir(sourceFolder, async (err, files) => {
 
     progressBar.stop();
 
-    // Additional logs to ensure they remain visible
     console.log('All files converted successfully.');
     console.log(`Total files processed: ${convertedFiles}`);
 });

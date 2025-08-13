@@ -1,10 +1,12 @@
 {
-  "name": "dkb-heic-to-png-converter",
+  "name": "dkb-heic-converter",
   "version": "0.1.0",
-  "description": "A script to convert .heic files to .png",
+  "description": "A script to convert .heic files to PNG or JPG",
   "main": "convertHeicToPng.js",
   "scripts": {
-    "dev": "node convertHeicToPng.js"
+    "convert:png": "node convertHeicToPng.js png",
+    "convert:jpg": "node convertHeicToPng.js jpg",
+    "dev": "node convertHeicToPng.js png"
   },
   "author": "Dogukan Kaan Bozkurt",
   "license": "MIT",
