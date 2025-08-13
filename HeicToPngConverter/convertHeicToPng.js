@@ -4,34 +4,61 @@ const sharp = require('sharp');
 const heicConvert = require('heic-convert');
 const cliProgress = require('cli-progress');
 
-// Get format from npm script name
-const exportFormat = (process.argv[2] || 'png').toLowerCase();
-if (!['png', 'jpg', 'jpeg'].includes(exportFormat)) {
-    console.error('Invalid format! Please choose either "png" or "jpg".');
-    process.exit(1);
-}
+const exportFormat = process.argv[2] === 'jpg' ? 'jpg' : 'png';
 
-// Get source and destination folder from arguments
+// Determine source and destination folders
 const sourceFolder = process.argv[3] ? path.resolve(process.argv[3]) : path.join(__dirname, 'source');
-const destFolder = process.argv[4] ? path.resolve(process.argv[4]) : path.join(__dirname, 'dist');
+const destFolder = process.argv[4]
+    ? path.resolve(process.argv[4])
+    : (sourceFolder === path.join(__dirname, 'source') ? path.join(__dirname, 'dist') : sourceFolder);
 
 // Ensure the destination folder exists
 if (!fs.existsSync(destFolder)) {
     fs.mkdirSync(destFolder, { recursive: true });
 }
 
-// Function to convert HEIC to PNG or JPG
+// Function to get all HEIC files recursively
+function getHeicFiles(dir) {
+    let results = [];
+    const list = fs.readdirSync(dir, { withFileTypes: true });
+    list.forEach(file => {
+        const fullPath = path.join(dir, file.name);
+        if (file.isDirectory()) {
+            results = results.concat(getHeicFiles(fullPath));
+        } else if (path.extname(file.name).toLowerCase() === '.heic') {
+            results.push(fullPath);
+        }
+    });
+    return results;
+}
+
+// Function to ensure unique filename in destination folder
+function getUniqueDestPath(destFolder, fileName, format) {
+    let baseName = path.basename(fileName, path.extname(fileName));
+    let finalPath = path.join(destFolder, `${baseName}.${format}`);
+    let counter = 1;
+
+    while (fs.existsSync(finalPath)) {
+        finalPath = path.join(destFolder, `${baseName}_${counter}.${format}`);
+        counter++;
+    }
+
+    return finalPath;
+}
+
+// Convert HEIC to PNG or JPG
 async function convertHeic(sourcePath, destPath) {
     try {
         const inputBuffer = fs.readFileSync(sourcePath);
+
+        // Decode HEIC to a usable format
         const outputBuffer = await heicConvert({
             buffer: inputBuffer,
-            format: exportFormat.toUpperCase() === 'JPG' ? 'JPEG' : exportFormat.toUpperCase(),
+            format: exportFormat === 'jpg' ? 'JPEG' : 'PNG',
             quality: 1
         });
 
         await sharp(outputBuffer)
-            .toFormat(exportFormat === 'jpg' ? 'jpeg' : exportFormat)
             .toFile(destPath);
 
         console.log(`Converted: ${sourcePath} -> ${destPath}`);
@@ -40,41 +67,8 @@ async function convertHeic(sourcePath, destPath) {
     }
 }
 
-// Recursively get all .heic files
-function getHeicFiles(dir) {
-    let results = [];
-    const list = fs.readdirSync(dir);
-    for (const file of list) {
-        const filePath = path.join(dir, file);
-        const stat = fs.statSync(filePath);
-        if (stat && stat.isDirectory()) {
-            results = results.concat(getHeicFiles(filePath));
-        } else if (path.extname(file).toLowerCase() === '.heic') {
-            results.push(filePath);
-        }
-    }
-    return results;
-}
-
-// Generate unique file path if it already exists
-function getUniqueFilePath(filePath) {
-    let uniquePath = filePath;
-    let counter = 1;
-
-    const ext = path.extname(filePath);
-    const baseName = path.basename(filePath, ext);
-    const dir = path.dirname(filePath);
-
-    while (fs.existsSync(uniquePath)) {
-        uniquePath = path.join(dir, `${baseName}_${counter}${ext}`);
-        counter++;
-    }
-
-    return uniquePath;
-}
-
 // Main function
-async function main() {
+(async () => {
     const heicFiles = getHeicFiles(sourceFolder);
 
     if (heicFiles.length === 0) {
@@ -86,38 +80,18 @@ async function main() {
         clearOnComplete: false,
         hideCursor: true
     }, cliProgress.Presets.shades_classic);
-    progressBar.start(heicFiles.length, 0);
 
+    progressBar.start(heicFiles.length, 0);
     let convertedFiles = 0;
 
     for (const file of heicFiles) {
-        // Preserve folder structure relative to source
-        const relativePath = path.relative(sourceFolder, file);
-        let destPath = path.join(
-            destFolder,
-            path.dirname(relativePath),
-            path.basename(file, path.extname(file)) + `.${exportFormat}`
-        );
-
-        // Ensure subfolders exist
-        const destDir = path.dirname(destPath);
-        if (!fs.existsSync(destDir)) {
-            fs.mkdirSync(destDir, { recursive: true });
-        }
-
-        // Make unique if file already exists
-        destPath = getUniqueFilePath(destPath);
-
+        const destPath = getUniqueDestPath(destFolder, path.basename(file), exportFormat);
         await convertHeic(file, destPath);
-
         convertedFiles++;
         progressBar.update(convertedFiles);
     }
 
     progressBar.stop();
-
     console.log('All files converted successfully.');
     console.log(`Total files processed: ${convertedFiles}`);
-}
-
-main();
+})();
